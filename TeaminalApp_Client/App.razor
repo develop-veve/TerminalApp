@@ -1,10 +1,10 @@
-﻿ @inject NavigationManager Navigation
+﻿@inject NavigationManager Navigation
 
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        @if (Navigation.Uri == Navigation.BaseUri)
+        @if (!Navigation.Uri.EndsWith("product-entry")) // 現在のURIが "product-entry" でない場合のみ実行
         {
-            Navigation.NavigateTo("product-entry", true);
+            Navigation.NavigateTo("product-entry");
         }
         else
         {
