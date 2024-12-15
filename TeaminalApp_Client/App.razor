@@ -1,0 +1,19 @@
+﻿ @inject NavigationManager Navigation
+
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        @if (Navigation.Uri == Navigation.BaseUri)
+        {
+            Navigation.NavigateTo("product-entry", true);
+        }
+        else
+        {
+            <RouteView RouteData="routeData" DefaultLayout="@typeof(MainLayout)" />
+        }
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p>Page not found!</p>
+        </LayoutView>
+    </NotFound>
+</Router>

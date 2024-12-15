@@ -1,0 +1,106 @@
+﻿@page "/"
+@page "/product-entry"
+@inject HttpClient Http
+@using TerminalApp_Shared.Models
+
+<div class="container">
+    <div class="form-container">
+        <h1 class="section-title">生産登録</h1>
+        <EditForm Model="Product" OnValidSubmit="SaveProduct">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-group">
+                <label class="field-title" for="productId">生産品ID</label>
+                <InputText id="productId" @bind-Value="Product.ProductId" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label class="field-title" for="productName">生産品名</label>
+                <InputText id="productName" @bind-Value="Product.ProductName" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label class="field-title" for="productType">製品タイプ</label>
+                <InputSelect id="productType" @bind-Value="Product.ProductType" class="form-control">
+                    <option value="">選択してください</option>
+                    <option value="完製品">完製品</option>
+                    <option value="半製品">半製品</option>
+                    <option value="部品">部品</option>
+                </InputSelect>
+            </div>
+            <div class="form-group">
+                <label class="field-title" for="adjustmentType">増減タイプ</label>
+                <InputSelect id="adjustmentType" @bind-Value="Product.AdjustmentType" class="form-control">
+                    <option value="">選択してください</option>
+                    <option value="仕入">仕入</option>
+                    <option value="製造">製造</option>
+                    <option value="組立">組立</option>
+                </InputSelect>
+            </div>
+            <div class="form-group">
+                <label class="field-title" for="quantity">数量</label>
+                <InputText id="quantity" @bind-Value="ProductQuantityString" class="form-control" />
+            </div>
+            <br />
+            <button type="submit" class="btn btn-primary">保存</button>
+        </EditForm>
+    </div>
+
+    <div class="calculator-container">
+        <div class="calculator-display-card">
+            0
+        </div>
+        <div class="calculator">
+            <button>%</button>
+            <button>CE</button>
+            <button>C</button>
+            <button>&larr;</button>
+            <button>7</button>
+            <button>8</button>
+            <button>9</button>
+            <button>&divide;</button>
+            <button>4</button>
+            <button>5</button>
+            <button>6</button>
+            <button>&times;</button>
+            <button>1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>&minus;</button>
+            <button>0</button>
+            <button>.</button>
+            <button>=</button>
+            <button class="enter">Enter</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string InputValue { get; set; } = "0";
+    private string CalculationHistory { get; set; } = "";
+    private ProductResult Product { get; set; } = new();
+
+    private string ProductQuantityString
+    {
+        get => Product.Quantity.ToString();
+        set
+        {
+            if (decimal.TryParse(value, out var result))
+                Product.Quantity = result;
+        }
+    }
+
+    private async Task SaveProduct()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/product/save", Product);
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("保存しました");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"エラー: {ex.Message}");
+        }
+    }
+}
