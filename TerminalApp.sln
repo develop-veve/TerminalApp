@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.11.35431.28
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeaminalApp_Client", "TeaminalApp_Client\TeaminalApp_Client.csproj", "{3DF897D2-8B0A-42DB-B695-86AF754BA33F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E156B748-6D9F-4FDA-B48C-095263E2EF1B} = {E156B748-6D9F-4FDA-B48C-095263E2EF1B}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerminalApp_Server", "TerminalApp_Server\TerminalApp_Server.csproj", "{E156B748-6D9F-4FDA-B48C-095263E2EF1B}"
 EndProject

@@ -26,16 +26,18 @@ else
             <tbody>
             @foreach (var product in ProductResults)
             {
-                        <tr>
-                            <td>@product.Id</td>
-                            <td>@product.ProductId</td>
-                            <td>@product.ProductName</td>
-                            <td>@product.ProductType</td>
-                            <td>@product.AdjustmentType</td>
-                            <td>@product.Quantity</td>
-                            <td>@product.CreateTimestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                            <td>@product.UpdateTimestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                        </tr>
+                <tr>
+                    <td>@product.Id</td>
+                    <td>@product.ProductId</td>
+                    <td>@product.ProductName</td>
+                    <td>@product.ProductType</td>
+                    <td>@product.AdjustmentType</td>
+                    <td>@product.Quantity</td>
+                    <td>@product.CreateTimestamp</td>
+                    <td>@product.UpdateTimestamp</td>
+                    @*                             <td>@product.CreateTimestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+            <td>@product.UpdateTimestamp.ToString("yyyy-MM-dd HH:mm:ss")</td> *@
+                </tr>
             }
             </tbody>
         </table>

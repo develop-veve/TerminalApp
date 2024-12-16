@@ -7,7 +7,7 @@
 <div class="container">
     <div class="form-container">
         <h1 class="section-title">生産登録</h1>
-        <EditForm Model="Product" OnValidSubmit="SaveProduct">
+        <EditForm Model="@Product" OnValidSubmit="@SaveProductEntry">
             <DataAnnotationsValidator />
             <ValidationSummary />
             <div class="form-group">
@@ -39,8 +39,8 @@
             <div class="form-group">
                 <label class="field-title" for="quantity">数量</label>
                 <div style="display: flex; gap: 10px;">
-                    <InputText id="quantity" @bind-Value="ProductQuantityString" class="form-control" />
-                    <InputSelect id="unit" @bind-Value="SelectedUnit" class="form-control">
+                    <InputText id="quantity" @bind-Value="Product.Quantity" class="form-control" />
+                    <InputSelect id="unit" @bind-Value="Product.SelectedUnit" class="form-control">
                         <option value="pcs">pcs</option>
                         <option value="kg">kg</option>
                         <option value="g">g</option>
@@ -51,14 +51,26 @@
                 </div>
             </div>
             <br />
-            <button type="submit" class="btn btn-primary">保存</button>
+            <button class="btn-primary" type="submit">保存</button>
         </EditForm>
+        <br />
+        <br />
+        <div>
+            @if (!string.IsNullOrEmpty(SuccessMessage))
+            {
+                <p class="text-success">@SuccessMessage</p>
+            }
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <p class="text-danger">@ErrorMessage</p>
+            }
+        </div>
     </div>
 
     <div class="calculator-container">
         <div class="calculator-display-card">
-            <div style="font-size: 1.2rem; color: gray;">@CalculationHistory</div> <!-- 計算履歴 -->
-            <div style="font-size: 2rem;">@InputValue</div> <!-- 現在の入力値 -->
+            <div class="history">@CalculationHistory</div>
+            <div class="result">@InputValue</div>
         </div>
         <div class="calculator">
             @foreach (var button in CalculatorButtons)
@@ -72,209 +84,157 @@
     </div>
 </div>
 
+
 @code {
 
     private string InputValue { get; set; } = "0";
     private string CalculationHistory { get; set; } = "";
     private ProductResult Product { get; set; } = new();
     private string SelectedUnit { get; set; } = "pcs";
-    private string ProductQuantityString
-    {
-        get => Product.Quantity.ToString();
-        set {if (decimal.TryParse(value, out var result)) { Product.Quantity = result; }}
-    }
-
     private string CurrentOperation { get; set; } = null;
     private double? FirstOperand { get; set; } = null;
     private bool IsSecondOperand { get; set; } = false;
+    private bool IsSaveButtonDisabled { get; set; } = false; // 保存ボタンの無効状態
 
     private readonly string[] CalculatorButtons = new[]
     {
-    "CE", "C", "←", "÷",
-    "7", "8", "9", "×",
-    "4", "5", "6", "−",
-    "1", "2", "3", "+",
-    "±", "0", ".", "=",
+        "CE", "C", "←", "÷",
+        "7", "8", "9", "×",
+        "4", "5", "6", "−",
+        "1", "2", "3", "+",
+        "±", "0", ".", "=",
     };
 
-    ///
-    ///
-    ///
+    private string SuccessMessage { get; set; } = ""; // 登録成功メッセージ
+    private string ErrorMessage { get; set; } = ""; // エラーメッセージ
+
+    // --- 計算機ロジック ---
     private void HandleButtonClick(string buttonValue)
     {
-        if (CalculationHistory.Contains("=") && buttonValue != "=") // イコール以外のボタンが押された場合
+        if (CalculationHistory.Contains("=") && buttonValue != "=") // 計算結果後のリセット
         {
             ResetCalculator();
         }
 
-        if (double.TryParse(buttonValue, out var number)) // 数値入力
+        switch (buttonValue)
         {
-            // 現在の入力を分割して整数部と小数部を取得
-            var parts = InputValue.Split('.');
-            var integerPart = parts[0];
-            var decimalPart = parts.Length > 1 ? parts[1] : "";
+            case var _ when double.TryParse(buttonValue, out _): // 数値入力
+                HandleNumberInput(buttonValue);
+                break;
 
-            // 整数部と小数部の制限を適用
-            if ((integerPart.Length < 8) || (InputValue.Contains(".") && decimalPart.Length < 5))
-            {
-                if (InputValue == "0" || CalculationHistory.Contains("=")) // 計算履歴リセット後の入力
-                {
-                    InputValue = buttonValue;
-                }
-                else
-                {
-                    InputValue += buttonValue;
-                }
+            case ".":
+                HandleDecimalPoint();
+                break;
 
-                // 計算履歴も更新
-                if (CalculationHistory.Length < 100) // 計算履歴全体の長さも制限
-                {
-                    CalculationHistory += buttonValue;
-                }
-            }
-        }
-        else if (buttonValue == ".") // 小数点
-        {
-            if (!InputValue.Contains("."))
-            {
-                InputValue += ".";
-                CalculationHistory += ".";
-            }
-        }
-        else if (buttonValue == "±") // プラスマイナス逆転
-        {
-            if (double.TryParse(InputValue, out var currentNumber))
-                InputValue = (-currentNumber).ToString();
-        }
-        else if (buttonValue == "C") // 全リセット
-        {
-            ResetCalculator();
-        }
-        else if (buttonValue == "CE") // 入力のみリセット
-        {
-            InputValue = "0"; // 入力をリセット
-            RemoveLastFromHistory(); // 計算履歴を一つ戻す
-        }
-        else if (buttonValue == "←") // バックスペース
-        {
-            InputValue = InputValue.Length > 1 ? InputValue[..^1] : "0";
-        }
-        else if (buttonValue == "=") // 計算実行
-        {
-            ExecuteCalculation();
+            case "±":
+                ToggleSign();
+                break;
 
-            if (decimal.TryParse(InputValue, out var quantity))
-            {
-                Product.Quantity = quantity; // 数量に反映
-            }
-        }
-        else // 演算子
-        {
-            SetOperation(buttonValue);
+            case "C":
+                ResetCalculator();
+                break;
+
+            case "CE":
+                ClearInput();
+                break;
+
+            case "←":
+                Backspace();
+                break;
+
+            case "=": // イコールボタン押下で計算と数量反映
+                ExecuteCalculation();
+                UpdateProductQuantity();
+                break;
+
+            default: // 演算子
+                SetOperation(buttonValue);
+                break;
         }
     }
 
+    private void UpdateProductQuantity()
+    {
+        if (decimal.TryParse(InputValue, out var quantity) && quantity >= 0)
+        {
+            Product.Quantity = quantity.ToString(); // 数量に反映
+            Console.WriteLine($"数量が更新されました: {Product.Quantity}");
+        }
+        else
+        {
+            Console.WriteLine("無効な計算結果のため、数量に反映できません。");
+        }
+    }
+
+
+    private void HandleNumberInput(string buttonValue)
+    {
+        var parts = InputValue.Split('.');
+        var integerPart = parts[0];
+        var decimalPart = parts.Length > 1 ? parts[1] : "";
+
+        if ((integerPart.Length < 8) || (InputValue.Contains(".") && decimalPart.Length < 5))
+        {
+            InputValue = InputValue == "0" ? buttonValue : InputValue + buttonValue;
+            CalculationHistory += buttonValue;
+        }
+    }
+
+    private void HandleDecimalPoint()
+    {
+        if (!InputValue.Contains("."))
+        {
+            InputValue += ".";
+            CalculationHistory += ".";
+        }
+    }
+
+    private void ToggleSign()
+    {
+        if (double.TryParse(InputValue, out var currentNumber))
+            InputValue = (-currentNumber).ToString();
+    }
+
+    private void ClearInput()
+    {
+        InputValue = "0";
+        RemoveLastFromHistory();
+    }
+
+    private void Backspace()
+    {
+        InputValue = InputValue.Length > 1 ? InputValue[..^1] : "0";
+    }
 
     private void ExecuteCalculation()
     {
-        if (string.IsNullOrWhiteSpace(CalculationHistory)) return;
-
         try
         {
-            // 数式を解析して計算結果を取得
             double result = CalculatorLogic.EvaluateExpression(CalculationHistory);
-
-            // 整数部と小数部を分離して制限を適用
-            var resultParts = result.ToString("F5").Split('.');
-            var integerPart = resultParts[0];
-            var decimalPart = resultParts.Length > 1 ? resultParts[1] : "";
-
-            if (integerPart.Length <= 8 && decimalPart.Length <= 5)
-            {
-                // 小数点以下がすべてゼロの場合は整数形式、そうでない場合は小数点以下を含む形式
-                if (result % 1 == 0)
-                {
-                    // 整数部のみ
-                    InputValue = string.Format("{0:N0}", result); // カンマ区切りで整数表示
-                }
-                else
-                {
-                    // 小数点以下も含む
-                    InputValue = string.Format("{0:N5}", result).TrimEnd('0').TrimEnd('.'); // 不要なゼロと小数点を削除
-                }
-            }
-            else
-            {
-                InputValue = "制限超過"; // 制限を超えた場合
-            }
-
-            // 計算履歴を更新
+            InputValue = result.ToString("F5").TrimEnd('0').TrimEnd('.');
             CalculationHistory += $" = {InputValue}";
         }
-        catch (Exception ex)
+        catch
         {
-            // エラーが発生した場合
             InputValue = "エラー";
-            Console.WriteLine($"計算エラー: {ex.Message}");
         }
     }
 
-
-
-    ///
-    ///
-    ///
     private void SetOperation(string operation)
     {
-        if (CalculationHistory.Contains("=")) // イコールが含まれている場合はリセット
+        if (double.TryParse(InputValue, out _))
         {
-            ResetCalculator();
-        }
-
-        if (double.TryParse(InputValue, out var currentNumber))
-        {
-            if (FirstOperand == null)
-            {
-                FirstOperand = currentNumber; // 最初のオペランドを設定
-            }
-            else if (!IsSecondOperand)
-            {
-                CalculationHistory += $" {InputValue} {operation} ";
-                ExecuteCalculation(); // 連続計算の場合、前回の計算を実行
-            }
-
-            CurrentOperation = operation;            // 現在の演算子を設定
-            CalculationHistory += $" {operation} ";  // 計算履歴を更新
-            InputValue = "";                         // 次のオペランド入力の準備（空白に設定）
-            IsSecondOperand = true;
+            CalculationHistory += $" {InputValue} {operation}";
+            InputValue = "0";
         }
     }
-
-
-
-
-
-
-
 
     private void RemoveLastFromHistory()
     {
-        if (string.IsNullOrWhiteSpace(CalculationHistory))
-            return;
-
-        // 計算履歴をトークンに分割
         var tokens = CalculationHistory.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
-
-        if (tokens.Count > 0)
-        {
-            // 最後のトークンを削除
-            tokens.RemoveAt(tokens.Count - 1);
-
-            // トークンをスペースで結合して計算履歴を更新
-            CalculationHistory = string.Join(" ", tokens);
-        }
+        if (tokens.Count > 0) tokens.RemoveAt(tokens.Count - 1);
+        CalculationHistory = string.Join(" ", tokens);
     }
-
 
     private void ResetCalculator()
     {
@@ -285,17 +245,58 @@
         IsSecondOperand = false;
     }
 
-    private async Task SaveProduct()
+    private async Task SaveProductEntry()
     {
+        if (!ValidateForm())
+        {
+            ErrorMessage = "必須項目を正しく入力してください。";
+            return;
+        }
+
         try
         {
-            var response = await Http.PostAsJsonAsync("api/product/save", Product);
+            var response = await Http.PostAsJsonAsync("http://localhost:5224/api/ProductResults", Product);
             if (response.IsSuccessStatusCode)
-                Console.WriteLine("保存しました");
+            {
+                SuccessMessage = "登録が完了しました。";
+                ErrorMessage = "";
+                IsSaveButtonDisabled = true; // ボタン無効化
+
+                StateHasChanged(); // UIを強制的にリレンダリング
+
+                // 5秒後にフォームをリセット
+                await Task.Delay(5000);
+                ResetForm();
+            }
+            else
+            {
+                ErrorMessage = "登録に失敗しました。";
+                SuccessMessage = "";
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"エラー: {ex.Message}");
+            ErrorMessage = $"エラーが発生しました: {ex.Message}";
         }
+    }
+
+    private void ResetForm()
+    {
+        Product = new ProductResult(); // フォームの初期化
+        SuccessMessage = "";
+        ErrorMessage = "";
+        IsSaveButtonDisabled = false;
+        InputValue = "0";
+        CalculationHistory = "";
+        StateHasChanged();
+    }
+
+    private bool ValidateForm()
+    {
+        return !string.IsNullOrEmpty(Product.ProductId) &&
+               !string.IsNullOrEmpty(Product.ProductName) &&
+               !string.IsNullOrEmpty(Product.ProductType) &&
+               !string.IsNullOrEmpty(Product.AdjustmentType) &&
+               Int64.Parse(Product.Quantity) > 0;
     }
 }

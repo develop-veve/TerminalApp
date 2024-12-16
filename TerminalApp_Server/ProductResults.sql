@@ -1,13 +1,12 @@
---BEGIN TRANSACTION;
---CREATE TABLE IF NOT EXISTS "ProductResults" (
+--CREATE TABLE "ProductResults" (
 --	"Id"	INTEGER,
 --	"ProductId"	TEXT NOT NULL,
 --	"ProductName"	TEXT NOT NULL,
 --	"ProductType"	TEXT NOT NULL,
 --	"AdjustmentType"	TEXT NOT NULL,
---	"Quantity"	INTEGER NOT NULL,
+--	"Quantity"	TEXT NOT NULL,
+--	"SelectedUnit"	TEXT NOT NULL,
 --	"CreateTimestamp"	DATETIME DEFAULT CURRENT_TIMESTAMP,
 --	"UpdateTimestamp"	DATETIME DEFAULT CURRENT_TIMESTAMP,
 --	PRIMARY KEY("Id" AUTOINCREMENT)
---);
---COMMIT;
+--)

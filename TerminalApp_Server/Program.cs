@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using TerminalApp_Server.Data;
 
 namespace TerminalApp_Server
 {
@@ -9,10 +11,21 @@ namespace TerminalApp_Server
 
             // Add services to the container.
 
+            // DbContextを追加し、SQLite接続を設定
+            builder.Services.AddDbContext<ProductResultsContext>(options =>
+                options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins", policy =>
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod());
+            });
 
             var app = builder.Build();
 
@@ -23,10 +36,12 @@ namespace TerminalApp_Server
                 app.UseSwaggerUI();
             }
 
+            app.UseHttpsRedirection(); // HTTPSリダイレクトを追加
+
             app.UseAuthorization();
+            app.UseCors("AllowAllOrigins"); // CORS ポリシーを適用
 
-
-            app.MapControllers();
+            app.MapControllers(); // コントローラーをマッピングする
 
             app.Run();
         }
