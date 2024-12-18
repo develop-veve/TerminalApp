@@ -1,29 +1,33 @@
-﻿@page "/product-entry-view"
+﻿@page "/ProductEntryView"
 @inject HttpClient Http
 @using TerminalApp_Shared.Models
 
-<h3>実績参照</h3>
+<h3>生産実績一覧</h3>
 
-@if (ProductResults == null || !ProductResults.Any())
+@if (ProductResults == null)
 {
-        <p>データがありません。</p>
+    <p>データを読み込み中...</p>
+}
+else if (!ProductResults.Any())
+{
+    <p>データが存在しません。</p>
 }
 else
 {
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>生産品ID</th>
-                    <th>生産品名</th>
-                    <th>製品タイプ</th>
-                    <th>増減タイプ</th>
-                    <th>数量</th>
-                    <th>登録日</th>
-                    <th>更新日</th>
-                </tr>
-            </thead>
-            <tbody>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>生産品ID</th>
+                <th>生産品名</th>
+                <th>製品タイプ</th>
+                <th>増減タイプ</th>
+                <th>数量</th>
+                <th>単位</th>
+                <th>登録日時</th>
+            </tr>
+        </thead>
+        <tbody>
             @foreach (var product in ProductResults)
             {
                 <tr>
@@ -33,29 +37,29 @@ else
                     <td>@product.ProductType</td>
                     <td>@product.AdjustmentType</td>
                     <td>@product.Quantity</td>
+                    <td>@product.SelectedUnit</td>
                     <td>@product.CreateTimestamp</td>
-                    <td>@product.UpdateTimestamp</td>
-                    @*                             <td>@product.CreateTimestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
-            <td>@product.UpdateTimestamp.ToString("yyyy-MM-dd HH:mm:ss")</td> *@
                 </tr>
             }
-            </tbody>
-        </table>
+        </tbody>
+    </table>
 }
 
 @code {
-    private List<ProductResult> ProductResults { get; set; } = new();
+    private List<ProductResult> ProductResults;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            // サーバーからデータ取得
-            ProductResults = await Http.GetFromJsonAsync<List<ProductResult>>("api/product/getall");
+            // サーバーの GET API を呼び出してデータ取得
+            ProductResults = await Http.GetFromJsonAsync<List<ProductResult>>("http://localhost:5224/api/ProductResults");
+
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"エラー: {ex.Message}");
+            Console.WriteLine($"データ取得中にエラーが発生しました: {ex.Message}");
+            ProductResults = new List<ProductResult>(); // エラー時は空リスト
         }
     }
 }

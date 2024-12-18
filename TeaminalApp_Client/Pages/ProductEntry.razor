@@ -1,8 +1,9 @@
-﻿@page "/"
-@page "/product-entry"
+﻿@page "/ProductEntry"
 @inject HttpClient Http
+@using System.Reflection
 @using TerminalApp_Shared
 @using TerminalApp_Shared.Models
+@using TerminalApp_Shared.Utils
 
 <div class="container">
     <div class="form-container">
@@ -25,6 +26,7 @@
                     <option value="完製品">完製品</option>
                     <option value="半製品">半製品</option>
                     <option value="部品">部品</option>
+                    <option value="部品">材料</option>
                 </InputSelect>
             </div>
             <div class="form-group">
@@ -95,7 +97,7 @@
     private double? FirstOperand { get; set; } = null;
     private bool IsSecondOperand { get; set; } = false;
     private bool IsSaveButtonDisabled { get; set; } = false; // 保存ボタンの無効状態
-
+    private readonly Calculator _calculator = new();
     private readonly string[] CalculatorButtons = new[]
     {
         "CE", "C", "←", "÷",
@@ -108,10 +110,23 @@
     private string SuccessMessage { get; set; } = ""; // 登録成功メッセージ
     private string ErrorMessage { get; set; } = ""; // エラーメッセージ
 
-    // --- 計算機ロジック ---
     private void HandleButtonClick(string buttonValue)
     {
-        if (CalculationHistory.Contains("=") && buttonValue != "=") // 計算結果後のリセット
+        // "エラー" が計算履歴または入力値に含まれている場合、すべてクリアして最初からやり直す
+        if (CalculationHistory.Contains("エラー") || InputValue == "エラー")
+        {
+            ResetCalculator();
+            return;
+        }
+
+        // イコールボタンがすでに押されている場合、2度目の "=" 押下は処理しない
+        if (buttonValue == "=" && CalculationHistory.Contains("="))
+        {
+            return;
+        }
+
+        // イコールボタンが押された後、他のボタン入力で計算機をリセット
+        if (CalculationHistory.Contains("=") && buttonValue != "=")
         {
             ResetCalculator();
         }
@@ -197,7 +212,7 @@
 
     private void ClearInput()
     {
-        InputValue = "0";
+       InputValue = "";
         RemoveLastFromHistory();
     }
 
@@ -210,7 +225,18 @@
     {
         try
         {
-            double result = CalculatorLogic.EvaluateExpression(CalculationHistory);
+            // 最後が演算子なら取り除く
+            var tokens = CalculationHistory.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (tokens.Count > 0 && IsOperator(tokens.Last()))
+            {
+                tokens.RemoveAt(tokens.Count - 1); // 最後の演算子を削除
+            }
+
+            // 再構成した履歴を使用して計算
+            CalculationHistory = string.Join(" ", tokens);
+            double result = _calculator.EvaluateExpression(CalculationHistory);
+
+            // 結果の表示
             InputValue = result.ToString("F5").TrimEnd('0').TrimEnd('.');
             CalculationHistory += $" = {InputValue}";
         }
@@ -220,12 +246,17 @@
         }
     }
 
+    private bool IsOperator(string token)
+    {
+        return token == "+" || token == "−" || token == "×" || token == "÷";
+    }
+
     private void SetOperation(string operation)
     {
         if (double.TryParse(InputValue, out _))
         {
-            CalculationHistory += $" {InputValue} {operation}";
-            InputValue = "0";
+            CalculationHistory += $" {operation} ";
+           InputValue = "";
         }
     }
 
@@ -238,7 +269,7 @@
 
     private void ResetCalculator()
     {
-        InputValue = "0";
+       InputValue = "";
         CalculationHistory = "";
         FirstOperand = null;
         CurrentOperation = null;
@@ -286,7 +317,7 @@
         SuccessMessage = "";
         ErrorMessage = "";
         IsSaveButtonDisabled = false;
-        InputValue = "0";
+       InputValue = "";
         CalculationHistory = "";
         StateHasChanged();
     }
@@ -298,5 +329,27 @@
                !string.IsNullOrEmpty(Product.ProductType) &&
                !string.IsNullOrEmpty(Product.AdjustmentType) &&
                Int64.Parse(Product.Quantity) > 0;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetDefaultProductValues();
+    }
+
+    /// <summary>
+    /// 生産品IDをDBから取得し、デフォルト値を設定
+    /// </summary>
+    private async Task SetDefaultProductValues()
+    {
+
+        Product = new ProductResult
+            {
+                ProductId = "TYPP0001",
+                ProductName = "プロトタイプ",
+                ProductType = "完製品",
+                AdjustmentType = "組立",
+                Quantity = "1",
+                SelectedUnit = "pcs"
+            };
     }
 }

@@ -11,6 +11,7 @@ namespace TerminalApp_Server.Controllers
     {
         private readonly ProductResultsContext _context;
 
+        // コンストラクタでデータベースコンテキストを注入
         public ProductResultsController(ProductResultsContext context)
         {
             _context = context;
@@ -20,8 +21,9 @@ namespace TerminalApp_Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductResult>>> GetProductResults()
         {
+            // 登録日が新しい順にすべての結果を取得
             return await _context.ProductResults
-                .OrderByDescending(p => p.CreateTimestamp) // 登録日が新しい順に取得
+                .OrderByDescending(p => p.CreateTimestamp)
                 .ToListAsync();
         }
 
@@ -34,11 +36,13 @@ namespace TerminalApp_Server.Controllers
                 return BadRequest(ModelState); // モデルのバリデーションエラー
             }
 
-            product.CreateTimestamp = DateTime.Now.ToString();
-            product.UpdateTimestamp = DateTime.Now.ToString();
+            // 登録日時と更新日時を設定
+            product.CreateTimestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            product.UpdateTimestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             try
             {
+                // データベースに新しい結果を追加
                 _context.ProductResults.Add(product);
                 await _context.SaveChangesAsync();
 
