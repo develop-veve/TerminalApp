@@ -1,29 +1,29 @@
 ﻿.container {
     display: flex;
-    justify-content: flex-start; /* 左寄せ */
+    justify-content: flex-start; /*左寄せ*/
     align-items: flex-start;
     padding: 10px;
     gap: 20px;
 }
 
 .form-container {
-    width: 35%; /* 入力項目の幅を調整 */
+    width: 35%; /*入力項目の幅を調整*/
 }
 
 .form-group {
-    margin-bottom: 10px; /* 入力項目間の間隔を調整 */
-    font-size: 0.8rem; /* フォントサイズを少し小さくする */
+    margin-bottom: 10px; /*入力項目間の間隔を調整*/
+    font-size: 0.8rem; /*フォントサイズを少し小さくする*/
 }
 
 .form-control {
-    font-size: 0.8rem; /* 入力項目内のテキストサイズも調整 */
+    font-size: 0.8rem; /*入力項目内のテキストサイズも調整*/
 }
 
 .form-container button {
-    width: 100%; /* 入力項目の幅に合わせる */
-    padding: 10px; /* ボタンの高さを適切に調整 */
+    width: 100%; /*入力項目の幅に合わせる*/
+    padding: 10px; /*ボタンの高さを適切に調整*/
     font-size: 1rem;
-    background-color: #007bff; /* 背景色 */
+    background-color: #007bff; /*背景色*/
     color: white;
     border: none;
     border-radius: 5px;
@@ -31,89 +31,89 @@
 }
 
     .form-container button:hover {
-        background-color: #0056b3; /* ホバー時の色 */
+        background-color: #0056b3; /*ホバー時の色*/
     }
 
 .section-title {
-    font-size: 1.8rem;
+/*    font-size: 1.8rem;
     font-weight: bold;
     border-left: 5px solid #4CAF50;
     padding-left: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 20px;*/
 }
 
 .field-title {
-    font-size: 1rem;
+/*    font-size: 1rem;
     font-weight: bold;
     border-bottom: 2px solid #4CAF50;
     display: inline-block;
     margin-bottom: 5px;
-    padding-bottom: 2px;
+    padding-bottom: 2px;*/
 }
 
 .calculator-container {
-    width: 300px; /* 電卓の幅を調整 */
+    width: 300px; /*電卓の幅を調整*/
     display: flex;
-    flex-direction: column; /* 縦方向に配置 */
-    background: linear-gradient(to bottom, #004080, #002040); /* 背景色を統一 */
+    flex-direction: column; /*縦方向に配置*/
+    background: linear-gradient(to bottom, #004080, #002040); /*背景色を統一*/
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    margin-top: 10px; /* 上部の余白を調整 */
-    height: auto; /* コンテンツに応じて高さを可変 */
+    margin-top: 10px; /*上部の余白を調整*/
+    height: auto; /*コンテンツに応じて高さを可変*/
 }
 
 .calculator-display-card {
     width: 100%;
-    height: 150px; /* 高さを広げる */
+    height: 150px; /*高さを広げる*/
     background: white;
     border-radius: 10px 10px 0 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    margin-bottom: 10px; /* 電卓ボタンとの間隔を調整 */
+    margin-bottom: 10px; /*電卓ボタンとの間隔を調整*/
     display: flex;
-    flex-direction: column; /* 縦方向に要素を配置 */
-    justify-content: space-between; /* 上下の余白を確保しながら配置 */
-    padding: 10px; /* 内側の余白を追加 */
+    flex-direction: column; /*縦方向に要素を配置*/
+    justify-content: space-between; /*上下の余白を確保しながら配置*/
+    padding: 10px; /*内側の余白を追加*/
     color: black;
-    text-align: right; /* 右寄せ */
+    text-align: right; /*右寄せ*/
 }
 
-    /* 計算履歴（右寄せ上寄せ） */
+    /*計算履歴（右寄せ上寄せ）*/
     .calculator-display-card .history {
-        font-size: 1.2rem; /* 計算履歴の文字サイズ */
-        text-align: right; /* 右寄せ */
-        color: gray; /* 計算履歴の色 */
-        margin-bottom: auto; /* 上寄せを強調 */
+        font-size: 1.2rem; /*計算履歴の文字サイズ*/
+        text-align: right; /*右寄せ*/
+        color: gray; /*計算履歴の色*/
+        margin-bottom: auto; /*上寄せを強調*/
     }
 
-    /* 計算結果（右寄せ下寄せ） */
+    /*計算結果（右寄せ下寄せ）*/
     .calculator-display-card .result {
-        font-size: 2.5rem; /* 計算結果の文字サイズ */
-        text-align: right; /* 右寄せ */
-        margin-top: auto; /* 下寄せを強調 */
+        font-size: 2.5rem; /*計算結果の文字サイズ*/
+        text-align: right; /*右寄せ*/
+        margin-top: auto; /*下寄せを強調*/
     }
 
 
 
 .calculator {
-    width: 100%; /* 電卓の全体幅を固定 */
+    width: 100%; /*電卓の全体幅を固定*/
     padding: 10px;
-    border-radius: 0 0 10px 10px; /* 下半分の角丸を設定 */
+    border-radius: 0 0 10px 10px; /*下半分の角丸を設定*/
     display: grid;
-    grid-template-rows: repeat(5, 60px); /* ボタンの高さを広げる */
-    grid-template-columns: repeat(4, 1fr); /* 4列のグリッド */
-    gap: 10px; /* ボタン間の余白を調整 */
+    grid-template-rows: repeat(5, 60px); /*ボタンの高さを広げる*/
+    grid-template-columns: repeat(4, 1fr); /*4列のグリッド*/
+    gap: 10px; /*ボタン間の余白を調整*/
 }
 
     .calculator button {
         background: rgba(255, 255, 255, 0.9);
         border: none;
         border-radius: 5px;
-        font-size: 1.2rem; /* ボタンの文字サイズを調整 */
+        font-size: 1.2rem; /*ボタンの文字サイズを調整*/
         color: black;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         cursor: pointer;
-        height: 100%; /* ボタンの高さを親要素に合わせる */
-        width: 100%; /* ボタンの幅を親要素に合わせる */
+        height: 100%; /*ボタンの高さを親要素に合わせる*/
+        width: 100%; /*ボタンの幅を親要素に合わせる*/
     }
 
         .calculator button:hover,
@@ -126,11 +126,11 @@
         grid-column: span 4;
         background: #4CAF50;
         color: white;
-        height: 60px; /* Enterボタンの高さを調整 */
+        height: 60px; /*Enterボタンの高さを調整*/
     }
 
 .btn-primary {
-    background-color: #007bff;
+    background-color: #0b2035;
     color: white;
     border: none;
     border-radius: 5px;

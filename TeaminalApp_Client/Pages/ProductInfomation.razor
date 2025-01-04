@@ -1,0 +1,96 @@
+﻿@page "/ProductInfomation"
+@using TerminalApp_Shared.Models
+@inject HttpClient Http
+<link href="~/css/styles.css" rel="stylesheet" />
+
+<div class="grid-container">
+    <h3>本日の生産情報</h3>
+    <br />
+    <p>本日の稼働時間: @FormatTime(totalWorkingMinutes)</p>
+    <br />
+    <h3>完了数と時間のサマリー</h3>
+    @if (productSummaries.Any())
+    {
+        <table class="grid-table">
+            <thead>
+                <tr>
+                    <th>生産品ID</th>
+                    <th>生産品名</th>
+                    <th>製品タイプ</th>
+                    <th>増減タイプ</th>
+                    <th>単位</th>
+                    <th>数量</th>
+                    <th>稼働時間</th>
+                    <th>休憩時間</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var summary in productSummaries)
+                {
+                    <tr>
+                        <td>@summary.ProductId</td>
+                        <td>@summary.ProductName</td>
+                        <td>@summary.ProductType</td>
+                        <td>@summary.AdjustmentType</td>
+                        <td>@summary.Unit</td>
+                        <td>@summary.TotalQuantity</td>
+                        <td>@FormatTime(summary.TotalWorkingMinutes)</td>
+                        <td>@FormatTime(summary.TotalBreaktimeMinutes)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>データがありません。</p>
+    }
+</div>
+
+@code {
+    private int totalWorkingMinutes = 0;
+    private List<ProductSummary> productSummaries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchSummaryData();
+    }
+
+    private async Task FetchSummaryData()
+    {
+        try
+        {
+            var response = await Http.GetAsync("http://localhost:5224/api/ProductResults/summary");
+            if (response.IsSuccessStatusCode)
+            {
+                productSummaries = await response.Content.ReadFromJsonAsync<List<ProductSummary>>() ?? new List<ProductSummary>();
+
+                // 本日の稼働時間を計算
+                totalWorkingMinutes = productSummaries.Sum(ps => ps.TotalWorkingMinutes);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"データ取得中にエラーが発生しました: {ex.Message}");
+        }
+    }
+
+    private string FormatTime(int minutes)
+    {
+        int h = minutes / 60;
+        int m = minutes % 60;
+        return $"{h}:{m:D2}";
+    }
+
+    public class ProductSummary
+    {
+        public string ProductId { get; set; } = string.Empty; // 生産品ID
+        public string ProductName { get; set; } = string.Empty; // 生産品名
+        public string ProductType { get; set; } = string.Empty; // 製品タイプ
+        public string AdjustmentType { get; set; } = string.Empty; // 増減タイプ
+        public string Unit { get; set; } = string.Empty; // 単位
+        public int TotalQuantity { get; set; } // 合計数量
+        public int TotalWorkingMinutes { get; set; } // 合計稼働時間（分単位）
+        public int TotalBreaktimeMinutes { get; set; } // 合計休憩時間（分単位）
+    }
+}

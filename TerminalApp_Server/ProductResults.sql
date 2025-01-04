@@ -1,12 +1,13 @@
 --CREATE TABLE "ProductResults" (
---	"Id"	INTEGER,
---	"ProductId"	TEXT NOT NULL,
---	"ProductName"	TEXT NOT NULL,
---	"ProductType"	TEXT NOT NULL,
---	"AdjustmentType"	TEXT NOT NULL,
---	"Quantity"	TEXT NOT NULL,
---	"SelectedUnit"	TEXT NOT NULL,
---	"CreateTimestamp"	DATETIME DEFAULT CURRENT_TIMESTAMP,
---	"UpdateTimestamp"	DATETIME DEFAULT CURRENT_TIMESTAMP,
---	PRIMARY KEY("Id" AUTOINCREMENT)
---)
+--	"Id"	INTEGER NOT NULL,
+--	"ProductId"	TEXT,
+--	"ProductName"	TEXT,
+--	"ProductType"	TEXT,
+--	"AdjustmentType"	TEXT,
+--	"Quantity"	TEXT,
+--	"SelectedUnit"	TEXT,
+--	"CreateTimestamp"	TEXT,
+--	"UpdateTimestamp"	TEXT,
+--	"CompletedCount"	INTEGER NOT NULL DEFAULT 0,
+--	CONSTRAINT "PK_ProductResults" PRIMARY KEY("Id" AUTOINCREMENT)
+--);

@@ -102,9 +102,9 @@ code {
     color: #c02d76;
 }
 #blazor-error-ui {
-    display: none !important; /* エラーメッセージを非表示 */
+    display: none !important; /*エラーメッセージを非表示*/
 }
 
 .progress-bar {
-    display: none !important; /* 進捗バーを非表示 */
+    display: none !important; /*進捗バーを非表示*/
 }

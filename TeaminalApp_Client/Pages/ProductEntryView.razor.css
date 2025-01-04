@@ -1,0 +1,70 @@
+﻿/* コンテナ全体のスタイル */
+.grid-container {
+    margin: 20px auto; /* 上下左右の余白を設定 */
+    max-width: 1200px; /* 最大幅を指定 */
+    font-family: 'Arial', sans-serif; /* フォントを指定 */
+    font-size: 0.9em; /* 全体の文字サイズを小さく */
+}
+
+    /* タイトルのスタイル */
+    .grid-container h3 {
+        font-size: 1.5em; /* 少し小さめのタイトル */
+        color: #333; /* 文字色を指定 */
+        text-align: left; /* 左寄せ */
+        margin-bottom: 10px; /* タイトル下の余白を狭く */
+        border-bottom: 1px solid #ddd; /* ヘッダー色を薄く */
+        padding-bottom: 5px; /* 下部の内側余白 */
+    }
+
+/* テーブル全体のスタイル */
+.grid-table {
+    width: 100%; /* テーブルを親コンテナの幅に合わせる */
+    border-collapse: collapse; /* ボーダーを重ねる */
+    margin-top: 15px; /* 上部の余白を設定 */
+    font-size: 0.9em; /* テーブルの文字サイズを小さく */
+    text-align: left; /* 左寄せに設定 */
+    background-color: #fff; /* 背景色を白に統一 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 控えめな影を追加 */
+}
+
+    /* ヘッダーのスタイル */
+    .grid-table thead {
+        background-color: #f9f9f9; /* 背景色を控えめに */
+        color: #333; /* 文字色を黒に設定 */
+        font-weight: bold; /* 太字を指定 */
+    }
+
+    /* セルのスタイル */
+    .grid-table th,
+    .grid-table td {
+        border: 1px solid #ddd; /* 薄いボーダーを追加 */
+        padding: 8px 12px; /* セル内の余白を調整 */
+        text-align: left; /* 左寄せに設定 */
+    }
+
+    /* 行ごとの背景色 */
+    .grid-table tbody tr:nth-child(even) {
+        background-color: #f8f8f8; /* 偶数行の背景色を薄く */
+    }
+
+    /* ホバー効果 */
+    .grid-table tbody tr:hover {
+        background-color: #f0f0f0; /* ホバー時の背景色を控えめに */
+        cursor: pointer; /* ポインタの形状を変更 */
+    }
+
+/* 読み込み中のメッセージ */
+.loading-message {
+    font-size: 1em; /* メッセージの文字サイズ */
+    color: #555; /* 文字色を設定 */
+    margin-top: 20px; /* 上部の余白を設定 */
+    text-align: center; /* テキストを中央揃え */
+}
+
+/* データなしの場合のメッセージ */
+.empty-message {
+    font-size: 1em; /* メッセージの文字サイズ */
+    color: #555; /* 文字色を設定 */
+    margin-top: 20px; /* 上部の余白を設定 */
+    text-align: center; /* テキストを中央揃え */
+}

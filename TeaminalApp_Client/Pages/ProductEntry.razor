@@ -1,16 +1,25 @@
 ﻿@page "/ProductEntry"
 @inject HttpClient Http
 @using System.Reflection
+@using System.Data
 @using TerminalApp_Shared
 @using TerminalApp_Shared.Models
 @using TerminalApp_Shared.Utils
 
 <div class="container">
     <div class="form-container">
-        <h1 class="section-title">生産登録</h1>
+        <h3 class="section-title">生産登録</h3>
         <EditForm Model="@Product" OnValidSubmit="@SaveProductEntry">
             <DataAnnotationsValidator />
             <ValidationSummary />
+            <div class="form-group">
+                <label class="field-title" for="createUserId">担当者ID</label>
+                <InputText id="createUserId" class="form-control" @bind-Value="Product.CreateUserID" Disabled />
+            </div>
+            <div class="form-group">
+                <label class="field-title" for="createUserName">担当者名</label>
+                <InputText id="createUserName" class="form-control" @bind-Value="Product.CreateUserName" Disabled />
+            </div>
             <div class="form-group">
                 <label class="field-title" for="productId">生産品ID</label>
                 <InputText id="productId" @bind-Value="Product.ProductId" class="form-control" />
@@ -26,16 +35,16 @@
                     <option value="完製品">完製品</option>
                     <option value="半製品">半製品</option>
                     <option value="部品">部品</option>
-                    <option value="部品">材料</option>
+                    <option value="材料">材料</option>
                 </InputSelect>
             </div>
             <div class="form-group">
                 <label class="field-title" for="adjustmentType">増減タイプ</label>
                 <InputSelect id="adjustmentType" @bind-Value="Product.AdjustmentType" class="form-control">
                     <option value="">選択してください</option>
-                    <option value="仕入">仕入</option>
                     <option value="製造">製造</option>
                     <option value="組立">組立</option>
+                    <option value="仕入">仕入</option>
                 </InputSelect>
             </div>
             <div class="form-group">
@@ -53,7 +62,7 @@
                 </div>
             </div>
             <br />
-            <button class="btn-primary" type="submit">保存</button>
+            <button class="btn-primary" type="submit">完了通知</button>
         </EditForm>
         <br />
         <br />
@@ -86,18 +95,12 @@
     </div>
 </div>
 
-
 @code {
-
+    private ProductResult Product { get; set; } = new();
+    private string SuccessMessage { get; set; } = "";
+    private string ErrorMessage { get; set; } = "";
     private string InputValue { get; set; } = "0";
     private string CalculationHistory { get; set; } = "";
-    private ProductResult Product { get; set; } = new();
-    private string SelectedUnit { get; set; } = "pcs";
-    private string CurrentOperation { get; set; } = null;
-    private double? FirstOperand { get; set; } = null;
-    private bool IsSecondOperand { get; set; } = false;
-    private bool IsSaveButtonDisabled { get; set; } = false; // 保存ボタンの無効状態
-    private readonly Calculator _calculator = new();
     private readonly string[] CalculatorButtons = new[]
     {
         "CE", "C", "←", "÷",
@@ -107,197 +110,37 @@
         "±", "0", ".", "=",
     };
 
-    private string SuccessMessage { get; set; } = ""; // 登録成功メッセージ
-    private string ErrorMessage { get; set; } = ""; // エラーメッセージ
-
-    private void HandleButtonClick(string buttonValue)
+    protected override async Task OnInitializedAsync()
     {
-        // "エラー" が計算履歴または入力値に含まれている場合、すべてクリアして最初からやり直す
-        if (CalculationHistory.Contains("エラー") || InputValue == "エラー")
-        {
-            ResetCalculator();
-            return;
-        }
-
-        // イコールボタンがすでに押されている場合、2度目の "=" 押下は処理しない
-        if (buttonValue == "=" && CalculationHistory.Contains("="))
-        {
-            return;
-        }
-
-        // イコールボタンが押された後、他のボタン入力で計算機をリセット
-        if (CalculationHistory.Contains("=") && buttonValue != "=")
-        {
-            ResetCalculator();
-        }
-
-        switch (buttonValue)
-        {
-            case var _ when double.TryParse(buttonValue, out _): // 数値入力
-                HandleNumberInput(buttonValue);
-                break;
-
-            case ".":
-                HandleDecimalPoint();
-                break;
-
-            case "±":
-                ToggleSign();
-                break;
-
-            case "C":
-                ResetCalculator();
-                break;
-
-            case "CE":
-                ClearInput();
-                break;
-
-            case "←":
-                Backspace();
-                break;
-
-            case "=": // イコールボタン押下で計算と数量反映
-                ExecuteCalculation();
-                UpdateProductQuantity();
-                break;
-
-            default: // 演算子
-                SetOperation(buttonValue);
-                break;
-        }
-    }
-
-    private void UpdateProductQuantity()
-    {
-        if (decimal.TryParse(InputValue, out var quantity) && quantity >= 0)
-        {
-            Product.Quantity = quantity.ToString(); // 数量に反映
-            Console.WriteLine($"数量が更新されました: {Product.Quantity}");
-        }
-        else
-        {
-            Console.WriteLine("無効な計算結果のため、数量に反映できません。");
-        }
-    }
-
-
-    private void HandleNumberInput(string buttonValue)
-    {
-        var parts = InputValue.Split('.');
-        var integerPart = parts[0];
-        var decimalPart = parts.Length > 1 ? parts[1] : "";
-
-        if ((integerPart.Length < 8) || (InputValue.Contains(".") && decimalPart.Length < 5))
-        {
-            InputValue = InputValue == "0" ? buttonValue : InputValue + buttonValue;
-            CalculationHistory += buttonValue;
-        }
-    }
-
-    private void HandleDecimalPoint()
-    {
-        if (!InputValue.Contains("."))
-        {
-            InputValue += ".";
-            CalculationHistory += ".";
-        }
-    }
-
-    private void ToggleSign()
-    {
-        if (double.TryParse(InputValue, out var currentNumber))
-            InputValue = (-currentNumber).ToString();
-    }
-
-    private void ClearInput()
-    {
-       InputValue = "";
-        RemoveLastFromHistory();
-    }
-
-    private void Backspace()
-    {
-        InputValue = InputValue.Length > 1 ? InputValue[..^1] : "0";
-    }
-
-    private void ExecuteCalculation()
-    {
-        try
-        {
-            // 最後が演算子なら取り除く
-            var tokens = CalculationHistory.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
-            if (tokens.Count > 0 && IsOperator(tokens.Last()))
-            {
-                tokens.RemoveAt(tokens.Count - 1); // 最後の演算子を削除
-            }
-
-            // 再構成した履歴を使用して計算
-            CalculationHistory = string.Join(" ", tokens);
-            double result = _calculator.EvaluateExpression(CalculationHistory);
-
-            // 結果の表示
-            InputValue = result.ToString("F5").TrimEnd('0').TrimEnd('.');
-            CalculationHistory += $" = {InputValue}";
-        }
-        catch
-        {
-            InputValue = "エラー";
-        }
-    }
-
-    private bool IsOperator(string token)
-    {
-        return token == "+" || token == "−" || token == "×" || token == "÷";
-    }
-
-    private void SetOperation(string operation)
-    {
-        if (double.TryParse(InputValue, out _))
-        {
-            CalculationHistory += $" {operation} ";
-           InputValue = "";
-        }
-    }
-
-    private void RemoveLastFromHistory()
-    {
-        var tokens = CalculationHistory.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
-        if (tokens.Count > 0) tokens.RemoveAt(tokens.Count - 1);
-        CalculationHistory = string.Join(" ", tokens);
-    }
-
-    private void ResetCalculator()
-    {
-       InputValue = "";
-        CalculationHistory = "";
-        FirstOperand = null;
-        CurrentOperation = null;
-        IsSecondOperand = false;
+        Product.CreateUserID = "0001";
+        Product.CreateUserName = "管理者";
     }
 
     private async Task SaveProductEntry()
     {
-        if (!ValidateForm())
-        {
-            ErrorMessage = "必須項目を正しく入力してください。";
-            return;
-        }
-
         try
         {
+            Product.CreateUserID = "0001";
+            Product.CreateUserName = "管理者";
+
+            var todayResults = await FetchTodayResults();
+            if (todayResults.Any())
+            {
+                var lastCompleted = todayResults.OrderByDescending(r => DateTime.Parse(r.CreateTimestamp)).First();
+                Product.StartTimestamp = lastCompleted.CreateTimestamp;
+            }
+            else
+            {
+                Product.StartTimestamp = DateTime.Today.AddHours(8).ToString("yyyy-MM-dd HH:mm:ss");
+            }
+
+            Product.CreateTimestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
             var response = await Http.PostAsJsonAsync("http://localhost:5224/api/ProductResults", Product);
             if (response.IsSuccessStatusCode)
             {
                 SuccessMessage = "登録が完了しました。";
                 ErrorMessage = "";
-                IsSaveButtonDisabled = true; // ボタン無効化
-
-                StateHasChanged(); // UIを強制的にリレンダリング
-
-                // 5秒後にフォームをリセット
-                await Task.Delay(5000);
-                ResetForm();
             }
             else
             {
@@ -311,45 +154,119 @@
         }
     }
 
-    private void ResetForm()
+    private async Task<List<ProductResult>> FetchTodayResults()
     {
-        Product = new ProductResult(); // フォームの初期化
-        SuccessMessage = "";
-        ErrorMessage = "";
-        IsSaveButtonDisabled = false;
-       InputValue = "";
-        CalculationHistory = "";
-        StateHasChanged();
+        try
+        {
+            var response = await Http.GetFromJsonAsync<List<ProductResult>>("http://localhost:5224/api/ProductResults/today");
+            return response ?? new List<ProductResult>();
+        }
+        catch
+        {
+            return new List<ProductResult>();
+        }
     }
 
-    private bool ValidateForm()
+    private void HandleButtonClick(string buttonValue)
     {
-        return !string.IsNullOrEmpty(Product.ProductId) &&
-               !string.IsNullOrEmpty(Product.ProductName) &&
-               !string.IsNullOrEmpty(Product.ProductType) &&
-               !string.IsNullOrEmpty(Product.AdjustmentType) &&
-               Int64.Parse(Product.Quantity) > 0;
+        if (CalculationHistory.Contains("エラー") || InputValue == "エラー")
+        {
+            ResetCalculator();
+            return;
+        }
+
+        if (buttonValue == "=" && CalculationHistory.Contains("="))
+        {
+            return;
+        }
+
+        if (CalculationHistory.Contains("=") && buttonValue != "=")
+        {
+            ResetCalculator();
+        }
+
+        switch (buttonValue)
+        {
+            case var _ when double.TryParse(buttonValue, out _):
+                InputValue = InputValue == "0" ? buttonValue : InputValue + buttonValue;
+                CalculationHistory += buttonValue;
+                break;
+
+            case ".":
+                if (!InputValue.Contains("."))
+                {
+                    InputValue += ".";
+                    CalculationHistory += ".";
+                }
+                break;
+
+            case "±":
+                if (double.TryParse(InputValue, out var currentNumber))
+                    InputValue = (-currentNumber).ToString();
+                break;
+
+            case "C":
+                ResetCalculator();
+                break;
+
+            case "CE":
+                InputValue = "0";
+                break;
+
+            case "←":
+                InputValue = InputValue.Length > 1 ? InputValue[..^1] : "0";
+                break;
+
+            case "=":
+                ExecuteCalculation();
+                break;
+
+            default:
+                if (!string.IsNullOrEmpty(InputValue))
+                {
+                    CalculationHistory += $" {buttonValue} ";
+                    InputValue = "";
+                }
+                break;
+        }
     }
 
-    protected override async Task OnInitializedAsync()
+    private void ExecuteCalculation()
     {
-        await SetDefaultProductValues();
-    }
-
-    /// <summary>
-    /// 生産品IDをDBから取得し、デフォルト値を設定
-    /// </summary>
-    private async Task SetDefaultProductValues()
-    {
-
-        Product = new ProductResult
+        try
+        {
+            var tokens = CalculationHistory.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (tokens.Count > 0 && IsOperator(tokens[^1]))
             {
-                ProductId = "TYPP0001",
-                ProductName = "プロトタイプ",
-                ProductType = "完製品",
-                AdjustmentType = "組立",
-                Quantity = "1",
-                SelectedUnit = "pcs"
-            };
+                tokens.RemoveAt(tokens.Count - 1);
+            }
+
+            CalculationHistory = string.Join(" ", tokens);
+            var result = EvaluateExpression(CalculationHistory);
+            InputValue = result.ToString("F2");
+            CalculationHistory += $" = {InputValue}";
+        }
+        catch
+        {
+            InputValue = "エラー";
+        }
+    }
+
+    private bool IsOperator(string token) =>
+        new[] { "+", "−", "×", "÷" }.Contains(token);
+
+    private double EvaluateExpression(string expression)
+    {
+        var replacedExpression = expression
+            .Replace("×", "*")
+            .Replace("÷", "/")
+            .Replace("−", "-");
+        return Convert.ToDouble(new DataTable().Compute(replacedExpression, null));
+    }
+
+    private void ResetCalculator()
+    {
+        InputValue = "0";
+        CalculationHistory = "";
     }
 }

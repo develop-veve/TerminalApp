@@ -1,25 +1,25 @@
-﻿/* 全体のコンテナ */
+﻿/*全体のコンテナ*/
 .container {
     display: flex;
     flex-direction: row;
-    height: 100vh; /* 画面全体の高さを占有 */
+    height: 100vh; /*画面全体の高さを占有*/
     margin: 0;
     padding: 0;
 }
 
-/* サイドバー */
+/*サイドバー*/
 .sidebar {
-    width: 200px; /* サイドバーの幅を少し小さく設定 */
-    background-color: #2c3e50; /* ダークな背景色 */
+    width: 200px; /*サイドバーの幅を少し小さく設定*/
+    background-color: #2c3e50; /*ダークな背景色*/
     color: white;
     padding: 20px 10px;
     display: flex;
     flex-direction: column;
-    gap: 10px; /* メニュー間のスペース */
+    gap: 10px; /*メニュー間のスペース*/
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
-    /* サイドバーのリンク */
+    /*サイドバーのリンク*/
     .sidebar a {
         text-decoration: none;
         color: white;
@@ -29,16 +29,16 @@
         transition: background-color 0.3s ease;
     }
 
-        /* サイドバーのリンク（ホバー時のスタイル） */
+        /*サイドバーのリンク（ホバー時のスタイル）*/
         .sidebar a:hover {
             background-color: #34495e;
         }
 
-/* メインコンテンツ */
+/*メインコンテンツ*/
 .main-content {
     flex-grow: 1;
     padding: 20px;
-    background-color: #ecf0f1; /* 背景色を明るく設定 */
+    background-color: #ecf0f1; /*背景色を明るく設定*/
     overflow-y: auto;
 }
 
