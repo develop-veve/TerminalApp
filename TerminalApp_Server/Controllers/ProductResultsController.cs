@@ -45,78 +45,107 @@ namespace TerminalApp_Server.Controllers
         }
 
 
-        [HttpGet("today")]
-        public async Task<ActionResult<IEnumerable<ProductResult>>> GetTodayProductResults()
-        {
-            var today = DateTime.Today;
-            var startOfDay = today.AddHours(8); // 作業開始時刻を 8:00 に固定
-            var lunchBreakStart = today.AddHours(12); // 昼休憩開始時刻
-            var lunchBreakEnd = today.AddHours(13); // 昼休憩終了時刻
-            var endOfDay = today.AddDays(1).AddTicks(-1);
+        //[HttpGet("today")]
+        //public async Task<ActionResult<IEnumerable<ProductResult>>> GetTodayProductResults()
+        //{
+        //    var today = DateTime.Today;
+        //    var startOfDay = today.AddHours(8); // 作業開始時刻を 8:00 に固定
+        //    var lunchBreakStart = today.AddHours(12); // 昼休憩開始時刻
+        //    var lunchBreakEnd = today.AddHours(13); // 昼休憩終了時刻
+        //    var endOfDay = today.AddDays(1).AddTicks(-1);
 
+        //    try
+        //    {
+        //        // 本日分のデータを取得
+        //        var results = await _context.ProductResults
+        //            .Where(p => !string.IsNullOrEmpty(p.CreateTimestamp)) // 空チェックを追加
+        //            .ToListAsync();
+
+        //        // 日付を安全にパースしてフィルタリング
+        //        var filteredResults = results
+        //            .Where(p => DateTime.TryParse(p.CreateTimestamp, out var createDate)
+        //                     && createDate >= startOfDay && createDate <= endOfDay)
+        //            .OrderBy(p => DateTime.Parse(p.CreateTimestamp)) // 日付順にソート
+        //            .ToList();
+
+        //        // 各レコードの稼働時間と休憩時間を計算
+        //        foreach (var product in filteredResults)
+        //        {
+        //            if (DateTime.TryParse(product.StartTimestamp, out var startTime) &&
+        //                DateTime.TryParse(product.CreateTimestamp, out var endTime))
+        //            {
+        //                TimeSpan workTime = TimeSpan.Zero;
+        //                TimeSpan breakTime = TimeSpan.Zero;
+
+        //                // 午前作業時間
+        //                if (endTime <= lunchBreakStart)
+        //                {
+        //                    workTime += endTime - startTime;
+        //                }
+        //                // 午後作業時間
+        //                else if (startTime >= lunchBreakEnd)
+        //                {
+        //                    workTime += endTime - startTime;
+        //                }
+        //                // 昼休憩をまたぐ場合
+        //                else
+        //                {
+        //                    if (startTime < lunchBreakStart)
+        //                    {
+        //                        workTime += lunchBreakStart - startTime; // 午前作業時間
+        //                    }
+        //                    breakTime += lunchBreakEnd - lunchBreakStart; // 昼休憩
+        //                    if (endTime > lunchBreakEnd)
+        //                    {
+        //                        workTime += endTime - lunchBreakEnd; // 午後作業時間
+        //                    }
+        //                }
+
+        //                product.WorkingMinutes = (int)workTime.TotalMinutes;
+        //                product.BreaktimeMinutes = (int)breakTime.TotalMinutes;
+        //            }
+        //        }
+
+        //        return filteredResults;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // ログにエラーを記録
+        //        Console.WriteLine($"Error in GetTodayProductResults: {ex.Message}");
+        //        return StatusCode(500, "サーバーでエラーが発生しました");
+        //    }
+        //}
+
+        [HttpGet("summary")]
+        public async Task<ActionResult<IEnumerable<ProductSummary>>> GetProductSummaries()
+        {
             try
             {
-                // 本日分のデータを取得
-                var results = await _context.ProductResults
-                    .Where(p => !string.IsNullOrEmpty(p.CreateTimestamp)) // 空チェックを追加
-                    .ToListAsync();
+                var results = await _context.ProductResults.ToListAsync();
 
-                // 日付を安全にパースしてフィルタリング
-                var filteredResults = results
-                    .Where(p => DateTime.TryParse(p.CreateTimestamp, out var createDate)
-                             && createDate >= startOfDay && createDate <= endOfDay)
-                    .OrderBy(p => DateTime.Parse(p.CreateTimestamp)) // 日付順にソート
+                var summaries = results
+                    .GroupBy(p => new { p.ProductId, p.ProductName, p.ProductType, p.AdjustmentType, p.SelectedUnit })
+                    .Select(g => new ProductSummary
+                    {
+                        ProductId = g.Key.ProductId,
+                        ProductName = g.Key.ProductName,
+                        ProductType = g.Key.ProductType,
+                        AdjustmentType = g.Key.AdjustmentType,
+                        Unit = g.Key.SelectedUnit,
+                        TotalQuantity = g.Sum(x => int.TryParse(x.Quantity, out var q) ? q : 0),
+                        TotalWorkingMinutes = g.Sum(x => x.WorkingMinutes),
+                        TotalBreaktimeMinutes = g.Sum(x => x.BreaktimeMinutes)
+                    })
                     .ToList();
 
-                // 各レコードの稼働時間と休憩時間を計算
-                foreach (var product in filteredResults)
-                {
-                    if (DateTime.TryParse(product.StartTimestamp, out var startTime) &&
-                        DateTime.TryParse(product.CreateTimestamp, out var endTime))
-                    {
-                        TimeSpan workTime = TimeSpan.Zero;
-                        TimeSpan breakTime = TimeSpan.Zero;
-
-                        // 午前作業時間
-                        if (endTime <= lunchBreakStart)
-                        {
-                            workTime += endTime - startTime;
-                        }
-                        // 午後作業時間
-                        else if (startTime >= lunchBreakEnd)
-                        {
-                            workTime += endTime - startTime;
-                        }
-                        // 昼休憩をまたぐ場合
-                        else
-                        {
-                            if (startTime < lunchBreakStart)
-                            {
-                                workTime += lunchBreakStart - startTime; // 午前作業時間
-                            }
-                            breakTime += lunchBreakEnd - lunchBreakStart; // 昼休憩
-                            if (endTime > lunchBreakEnd)
-                            {
-                                workTime += endTime - lunchBreakEnd; // 午後作業時間
-                            }
-                        }
-
-                        product.WorkingMinutes = (int)workTime.TotalMinutes;
-                        product.BreaktimeMinutes = (int)breakTime.TotalMinutes;
-                    }
-                }
-
-                return filteredResults;
+                return summaries;
             }
             catch (Exception ex)
             {
-                // ログにエラーを記録
-                Console.WriteLine($"Error in GetTodayProductResults: {ex.Message}");
-                return StatusCode(500, "サーバーでエラーが発生しました");
+                Console.WriteLine($"エラー: {ex.Message}");
+                return StatusCode(500, "サマリーの取得に失敗しました");
             }
         }
-
-
 
         // POST: api/ProductResults
         [HttpPost]
