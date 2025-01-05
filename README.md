@@ -1,14 +1,14 @@
 ## サンプル演習
 ---
 ## 目的
-- 【〇】Blazorの基本的な使い方を理解する
+- Blazorの基本的な使い方を理解する
 - 
 ---
 ## 環境
-- 【〇】言語：C#
-- 【〇】画面: Microsoft.NET.Sdk.BlazorWebAssembly (Client),
+- 言語：C#
+- 画面: Microsoft.NET.Sdk.BlazorWebAssembly (Client),
              WebServer (ASP.NET Core WEB API)、電卓共通（クラスライブラリ)
-- 【〇】IDE：VisualStudio2022 （バージョンは問いません）
+- 　　　IDE：VisualStudio2022 （バージョンは問いません）
 ---
 ## 動作確認方法
 - サーバーとクライアントを同時にデバッグ実行。
