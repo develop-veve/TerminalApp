@@ -26,10 +26,11 @@
 ---
 ## 環境
 - 言語：C#
-- 画面: Microsoft.NET.Sdk.BlazorWebAssembly (Client),
--        WebServer (ASP.NET Core WEBAPIの構築),
--        電卓共通モジュール（クラスライブラリで作成)
-- 　　　　IDE：VisualStudio2022
+- 開発：
+- Microsoft.NET.Sdk.BlazorWebAssembly (Client),
+- WebServer (ASP.NET Core WEBAPIの構築),
+- 電卓共通モジュール（クラスライブラリで作成)
+- IDE：VisualStudio2022, Sqlite3
 ---
 ## 動作確認方法
 - サーバーとクライアントを同時にデバッグ実行。
